@@ -1,0 +1,145 @@
+.pokecard {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 2px solid #e8e8e8;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  max-width: 320px;
+  width: 100%;
+}
+
+.pokecard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.pokecard--favorito {
+  border-color: #f6c90e;
+  background: linear-gradient(135deg, #fffef0 0%, #fff 100%);
+}
+
+.pokecard__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.pokecard__imagem {
+  width: 96px;
+  height: 96px;
+  image-rendering: pixelated;
+  filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));
+}
+
+.pokecard__titulo {
+  flex: 1;
+}
+
+.pokecard__nome {
+  font-size: 1.2rem;
+  font-weight: 700;
+  text-transform: capitalize;
+  color: #2d2d2d;
+  margin: 0 0 8px 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pokecard__estrela {
+  font-size: 1rem;
+}
+
+.pokecard__tipos {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.pokecard__tipo {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 3px 10px;
+  border-radius: 20px;
+  color: white;
+  background: #999;
+}
+
+/* Cores por tipo */
+.pokecard__tipo--fire     { background: #f08030; }
+.pokecard__tipo--water    { background: #6890f0; }
+.pokecard__tipo--grass    { background: #78c850; }
+.pokecard__tipo--electric { background: #f8d030; color: #333; }
+.pokecard__tipo--ice      { background: #98d8d8; color: #333; }
+.pokecard__tipo--fighting { background: #c03028; }
+.pokecard__tipo--poison   { background: #a040a0; }
+.pokecard__tipo--ground   { background: #e0c068; color: #333; }
+.pokecard__tipo--flying   { background: #a890f0; }
+.pokecard__tipo--psychic  { background: #f85888; }
+.pokecard__tipo--bug      { background: #a8b820; }
+.pokecard__tipo--rock     { background: #b8a038; }
+.pokecard__tipo--ghost    { background: #705898; }
+.pokecard__tipo--dragon   { background: #7038f8; }
+.pokecard__tipo--dark     { background: #705848; }
+.pokecard__tipo--steel    { background: #b8b8d0; color: #333; }
+.pokecard__tipo--fairy    { background: #ee99ac; }
+.pokecard__tipo--normal   { background: #a8a878; }
+
+.pokecard__stats {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.pokecard__stat {
+  flex: 1;
+  background: #f5f5f5;
+  border-radius: 10px;
+  padding: 10px;
+  text-align: center;
+}
+
+.pokecard__stat-label {
+  display: block;
+  font-size: 0.7rem;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 4px;
+}
+
+.pokecard__stat-valor {
+  display: block;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #333;
+}
+
+.pokecard__botao-favorito {
+  width: 100%;
+  padding: 10px;
+  border: 2px solid #e8e8e8;
+  border-radius: 10px;
+  background: white;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #555;
+  transition: all 0.2s;
+}
+
+.pokecard__botao-favorito:hover {
+  border-color: #f6c90e;
+  background: #fffde7;
+  color: #333;
+}
+
+.pokecard__botao-favorito--ativo {
+  border-color: #f6c90e;
+  background: #fffde7;
+  color: #333;
+}
