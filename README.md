@@ -290,15 +290,6 @@ Exemplo de resposta utilizada:
 
 ---
 
-## 🙏 Agradecimentos
-
-- 🌐 [PokéAPI](https://pokeapi.co) pela API pública e gratuita
-- ⚡ [Vite](https://vitejs.dev) pelo ambiente de desenvolvimento rápido
-- 💚 Comunidade React e open source
-- 👨‍🏫 Prof. Giovani Disperati — Desenvolvimento Mobile (IFSP Guarulhos)
-
----
-
 <div align="center">
 
 ⭐ **Se este projeto foi útil, considere dar uma estrela!** ⭐
