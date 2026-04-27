@@ -1,44 +1,49 @@
 import React, { useState } from "react";
 import { PokeCard } from "./PokeCard";
 import "./Pokedex.css";
-
-type Pokemon = {
-  name: string;
-  height: number;
-  weight: number;
-  sprites: {
-    front_default: string | null;
-  };
-  types: Array<{
-    type: { name: string };
-  }>;
-};
-
-export default function Pokedex() {
+import { fetchPokemon, Pokemon } from "./services/api";
+export default function PokedexScreen() {
   const [nome, setNome] = useState("");
-  const [carregando, setCarregando] = useState(false);
-  const [pokemon, setPokemon] = useState<Pokemon | null>(null);
+  // Exercício 1: Estado de carregamento e erro
+  const [isLoading, setIsLoading] = useState(false);
   const [erro, setErro] = useState("");
+  const [pokemon, setPokemon] = useState<Pokemon | null>(null);
+
+  // Exercício 1: Busca Inicial ("busca inicial de dados não informa ao usuário o que está acontecendo e pode falhar silenciosamente")
+  React.useEffect(() => {
+    const carregarInicial = async () => {
+      setIsLoading(true);
+      setErro("");
+      try {
+        const dados = await fetchPokemon("pikachu");
+        setPokemon(dados);
+      } catch (error) {
+        setErro("Falha ao carregar Pokémons. Verifique sua conexão.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    carregarInicial();
+  }, []);
 
   const buscarPokemon = async () => {
     if (!nome.trim()) return;
 
-    setCarregando(true);
+    // Exercício 1: Indicador de carregamento
+    setIsLoading(true);
     setErro("");
     setPokemon(null);
 
+    // Exercício 1: try/catch para tratamento de erros na api
     try {
-      const resposta = await fetch(
-        `https://pokeapi.co/api/v2/pokemon/${nome.toLowerCase()}`
-      );
-      if (!resposta.ok) throw new Error("Pokémon não encontrado");
-
-      const dados: Pokemon = await resposta.json();
+      const dados = await fetchPokemon(nome);
       setPokemon(dados);
-    } catch (e) {
-      setErro("Pokémon não encontrado 😢");
+    } catch {
+      // Exercício 1: Mensagem de erro amigável
+      setErro("Falha ao carregar Pokémons. Verifique sua conexão.");
     } finally {
-      setCarregando(false);
+      // Exercício 1: Finaliza o carregamento
+      setIsLoading(false);
     }
   };
 
@@ -64,23 +69,26 @@ export default function Pokedex() {
           value={nome}
           onChange={(e) => setNome(e.target.value)}
           onKeyDown={handleKeyDown}
+          disabled={isLoading}
         />
         <button
           className="pokedex-button"
           onClick={buscarPokemon}
-          disabled={carregando}
+          disabled={isLoading}
         >
-          {carregando ? "⏳" : "🔍 Buscar"}
+          {isLoading ? "⏳" : "🔍 Buscar"}
         </button>
       </div>
 
-      {carregando && (
+      {/* Exercício 1: Indicador de carregamento */}
+      {isLoading && (
         <div className="pokedex-loading">
           <div className="pokedex-loading__spinner"></div>
-          <p>Carregando...</p>
+          <p>Carregando Pokémons…</p>
         </div>
       )}
 
+      {/* Exercício 1: Mensagem de erro amigável */}
       {erro && <p className="pokedex-error">{erro}</p>}
 
       {pokemon && (
