@@ -1,5 +1,6 @@
-import React from "react";
-import Pokedex from "./components/Pokedex";
+import Pokedex from "./Pokedex";
+import "./Pokedex.css";
+import "./PokeCard.css";
 
 export default function App() {
   return (
