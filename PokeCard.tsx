@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from "react";
-//import "./PokeCard.css";
+import { useState, useEffect } from "react";
 
 type Pokemon = {
   name: string;

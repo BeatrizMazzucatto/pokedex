@@ -1,54 +1,119 @@
-import React, { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { PokeCard } from "./PokeCard";
-import "./Pokedex.css";
-import { fetchPokemon, Pokemon } from "./services/api";
+import type { Pokemon } from "./services/api";
+import { fetchPokemon, fetchPokemonsIniciais } from "./services/api";
+
 export default function PokedexScreen() {
-  const [nome, setNome] = useState("");
-  // Exercício 1: Estado de carregamento e erro
+  const [busca, setBusca] = useState("");
+  const [inputBusca, setInputBusca] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [erro, setErro] = useState("");
-  const [pokemon, setPokemon] = useState<Pokemon | null>(null);
+  const [pokemons, setPokemons] = useState<Pokemon[]>([]);
+  const [carregamentoInicial, setCarregamentoInicial] = useState(true);
 
-  // Exercício 1: Busca Inicial ("busca inicial de dados não informa ao usuário o que está acontecendo e pode falhar silenciosamente")
-  React.useEffect(() => {
-    const carregarInicial = async () => {
+  // Carregamento inicial da lista
+  useEffect(() => {
+    const carregarIniciais = async () => {
       setIsLoading(true);
       setErro("");
       try {
-        const dados = await fetchPokemon("pikachu");
-        setPokemon(dados);
-      } catch (error) {
+        const dados = await fetchPokemonsIniciais();
+        setPokemons(dados);
+      } catch {
         setErro("Falha ao carregar Pokémons. Verifique sua conexão.");
       } finally {
         setIsLoading(false);
+        setCarregamentoInicial(false);
       }
     };
-    carregarInicial();
+    carregarIniciais();
   }, []);
 
-  const buscarPokemon = async () => {
-    if (!nome.trim()) return;
+  // Exercício 2: Filtragem da lista pelo termo de busca (filtro local)
+  const pokemonsFiltrados = useMemo(() => {
+    if (!busca.trim()) return pokemons;
+    return pokemons.filter((p) =>
+      p.name.toLowerCase().includes(busca.toLowerCase().trim())
+    );
+  }, [pokemons, busca]);
 
-    // Exercício 1: Indicador de carregamento
+  const buscarPokemon = async () => {
+    const termo = inputBusca.trim();
+    if (!termo) {
+      setBusca("");
+      return;
+    }
+
+    // Primeiro filtra localmente
+    const encontradoLocal = pokemons.some((p) =>
+      p.name.toLowerCase() === termo.toLowerCase()
+    );
+
+    if (encontradoLocal) {
+      setBusca(termo);
+      return;
+    }
+
+    // Se não encontrou localmente, busca na API e adiciona à lista
     setIsLoading(true);
     setErro("");
-    setPokemon(null);
-
-    // Exercício 1: try/catch para tratamento de erros na api
     try {
-      const dados = await fetchPokemon(nome);
-      setPokemon(dados);
+      const dados = await fetchPokemon(termo);
+      setPokemons((prev) => {
+        const jaExiste = prev.some((p) => p.name === dados.name);
+        return jaExiste ? prev : [dados, ...prev];
+      });
+      setBusca(termo);
     } catch {
-      // Exercício 1: Mensagem de erro amigável
-      setErro("Falha ao carregar Pokémons. Verifique sua conexão.");
+      setBusca(termo); // Aplica busca mesmo sem resultado para mostrar empty state
+      setErro(`Pokémon "${termo}" não encontrado na PokéAPI.`);
     } finally {
-      // Exercício 1: Finaliza o carregamento
       setIsLoading(false);
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") buscarPokemon();
+  };
+
+  const limparBusca = () => {
+    setInputBusca("");
+    setBusca("");
+    setErro("");
+  };
+
+  // Exercício 2: Componente de lista vazia (equivalente ao ListEmptyComponent da FlatList)
+  const ListEmptyComponent = () => {
+    if (isLoading) return null;
+
+    if (busca.trim() && pokemonsFiltrados.length === 0) {
+      return (
+        <div className="pokedex-empty">
+          <span className="pokedex-empty__icon">🔍</span>
+          <p className="pokedex-empty__titulo">Nenhum Pokémon encontrado</p>
+          <p className="pokedex-empty__subtitulo">
+            Nenhum Pokémon encontrado para <strong>"{busca}"</strong>
+          </p>
+          <button className="pokedex-empty__botao" onClick={limparBusca}>
+            Limpar busca
+          </button>
+        </div>
+      );
+    }
+
+    if (!carregamentoInicial && pokemons.length === 0) {
+      return (
+        <div className="pokedex-empty">
+          <span className="pokedex-empty__icon">😴</span>
+          <p className="pokedex-empty__titulo">Lista vazia</p>
+          <p className="pokedex-empty__subtitulo">
+            Nenhum Pokémon para exibir no momento.
+          </p>
+        </div>
+      );
+    }
+
+    return null;
   };
 
   return (
@@ -66,8 +131,8 @@ export default function PokedexScreen() {
           className="pokedex-input"
           type="text"
           placeholder="Ex: pikachu, bulbasaur..."
-          value={nome}
-          onChange={(e) => setNome(e.target.value)}
+          value={inputBusca}
+          onChange={(e) => setInputBusca(e.target.value)}
           onKeyDown={handleKeyDown}
           disabled={isLoading}
         />
@@ -78,9 +143,22 @@ export default function PokedexScreen() {
         >
           {isLoading ? "⏳" : "🔍 Buscar"}
         </button>
+        {busca && (
+          <button className="pokedex-button pokedex-button--secondary" onClick={limparBusca}>
+            ✕
+          </button>
+        )}
       </div>
 
-      {/* Exercício 1: Indicador de carregamento */}
+      {/* Indicador de busca ativa */}
+      {busca && !isLoading && (
+        <div className="pokedex-filtro-ativo">
+          Filtrando por: <strong>"{busca}"</strong> —{" "}
+          {pokemonsFiltrados.length} resultado{pokemonsFiltrados.length !== 1 ? "s" : ""}
+        </div>
+      )}
+
+      {/* Spinner de carregamento */}
       {isLoading && (
         <div className="pokedex-loading">
           <div className="pokedex-loading__spinner"></div>
@@ -88,13 +166,24 @@ export default function PokedexScreen() {
         </div>
       )}
 
-      {/* Exercício 1: Mensagem de erro amigável */}
+      {/* Mensagem de erro (não bloqueia a lista) */}
       {erro && <p className="pokedex-error">{erro}</p>}
 
-      {pokemon && (
-        <div className="pokedex-resultado">
-          <PokeCard pokemon={pokemon} />
-        </div>
+      {/* Exercício 2: Lista de resultados ou empty state */}
+      {!isLoading && (
+        <>
+          {pokemonsFiltrados.length > 0 ? (
+            <div className="pokedex-grid">
+              {pokemonsFiltrados.map((pokemon) => (
+                <div key={pokemon.name} className="pokedex-resultado">
+                  <PokeCard pokemon={pokemon} />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <ListEmptyComponent />
+          )}
+        </>
       )}
     </div>
   );
