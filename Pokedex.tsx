@@ -1,24 +1,34 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { PokeCard } from "./PokeCard";
 import type { Pokemon } from "./services/api";
-import { fetchPokemon, fetchPokemonsIniciais } from "./services/api";
+import { fetchPokemon, getPokemons, POKEMONS_POR_PAGINA } from "./services/api";
 
 export default function PokedexScreen() {
   const [busca, setBusca] = useState("");
   const [inputBusca, setInputBusca] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false); 
   const [erro, setErro] = useState("");
   const [pokemons, setPokemons] = useState<Pokemon[]>([]);
   const [carregamentoInicial, setCarregamentoInicial] = useState(true);
 
-  // Carregamento inicial da lista
+  const [offset, setOffset] = useState(0);
+
+  const [temMais, setTemMais] = useState(true);
+
+  const sentinelaRef = useRef<HTMLDivElement | null>(null);
+
+  const carregandoRef = useRef(false);
+
   useEffect(() => {
     const carregarIniciais = async () => {
       setIsLoading(true);
       setErro("");
       try {
-        const dados = await fetchPokemonsIniciais();
+        const dados = await getPokemons(0);
         setPokemons(dados);
+        setOffset(POKEMONS_POR_PAGINA);                         
+        setTemMais(dados.length === POKEMONS_POR_PAGINA);       
       } catch {
         setErro("Falha ao carregar Pokémons. Verifique sua conexão.");
       } finally {
@@ -29,7 +39,50 @@ export default function PokedexScreen() {
     carregarIniciais();
   }, []);
 
-  // Exercício 2: Filtragem da lista pelo termo de busca (filtro local)
+
+  const loadMorePokemons = useCallback(async () => {
+
+    if (carregandoRef.current || !temMais || busca.trim()) return;
+    carregandoRef.current = true;
+    setIsLoadingMore(true);
+    try {
+      const dados = await getPokemons(offset);
+      if (dados.length === 0) {
+        setTemMais(false);
+      } else {
+        setPokemons((prev) => {
+
+          const novos = dados.filter(
+            (d) => !prev.some((p) => p.name === d.name)
+          );
+          return [...prev, ...novos];
+        });
+        setOffset((prev) => prev + POKEMONS_POR_PAGINA);
+        setTemMais(dados.length === POKEMONS_POR_PAGINA);
+      }
+    } catch {
+      // falha silenciosa — não apaga a lista já exibida
+    } finally {
+      setIsLoadingMore(false);
+      carregandoRef.current = false;
+    }
+  }, [offset, temMais, busca]);
+
+  useEffect(() => {
+    const sentinela = sentinelaRef.current;
+    if (!sentinela) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          loadMorePokemons();
+        }
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(sentinela);
+    return () => observer.disconnect();
+  }, [loadMorePokemons]);
+
   const pokemonsFiltrados = useMemo(() => {
     if (!busca.trim()) return pokemons;
     return pokemons.filter((p) =>
@@ -44,7 +97,6 @@ export default function PokedexScreen() {
       return;
     }
 
-    // Primeiro filtra localmente
     const encontradoLocal = pokemons.some((p) =>
       p.name.toLowerCase() === termo.toLowerCase()
     );
@@ -54,7 +106,6 @@ export default function PokedexScreen() {
       return;
     }
 
-    // Se não encontrou localmente, busca na API e adiciona à lista
     setIsLoading(true);
     setErro("");
     try {
@@ -65,7 +116,7 @@ export default function PokedexScreen() {
       });
       setBusca(termo);
     } catch {
-      setBusca(termo); // Aplica busca mesmo sem resultado para mostrar empty state
+      setBusca(termo); 
       setErro(`Pokémon "${termo}" não encontrado na PokéAPI.`);
     } finally {
       setIsLoading(false);
@@ -82,7 +133,6 @@ export default function PokedexScreen() {
     setErro("");
   };
 
-  // Exercício 2: Componente de lista vazia (equivalente ao ListEmptyComponent da FlatList)
   const ListEmptyComponent = () => {
     if (isLoading) return null;
 
@@ -113,6 +163,26 @@ export default function PokedexScreen() {
       );
     }
 
+    return null;
+  };
+
+  const ListFooterComponent = () => {
+    if (busca.trim()) return null; 
+    if (isLoadingMore) {
+      return (
+        <div className="pokedex-footer-loading">
+          <div className="pokedex-loading__spinner"></div>
+          <p>Carregando mais Pokémons…</p>
+        </div>
+      );
+    }
+    if (!temMais && pokemons.length > 0) {
+      return (
+        <div className="pokedex-footer-fim">
+          <span>🎉 Você viu todos os {pokemons.length} Pokémons carregados!</span>
+        </div>
+      );
+    }
     return null;
   };
 
@@ -158,7 +228,7 @@ export default function PokedexScreen() {
         </div>
       )}
 
-      {/* Spinner de carregamento */}
+      {/* Spinner de carregamento inicial */}
       {isLoading && (
         <div className="pokedex-loading">
           <div className="pokedex-loading__spinner"></div>
@@ -166,10 +236,10 @@ export default function PokedexScreen() {
         </div>
       )}
 
-      {/* Mensagem de erro (não bloqueia a lista) */}
+      {}
       {erro && <p className="pokedex-error">{erro}</p>}
 
-      {/* Exercício 2: Lista de resultados ou empty state */}
+      {}
       {!isLoading && (
         <>
           {pokemonsFiltrados.length > 0 ? (
@@ -183,6 +253,14 @@ export default function PokedexScreen() {
           ) : (
             <ListEmptyComponent />
           )}
+
+          {}
+          {!busca.trim() && temMais && (
+            <div ref={sentinelaRef} className="pokedex-sentinela" />
+          )}
+
+          {}
+          <ListFooterComponent />
         </>
       )}
     </div>
