@@ -21,17 +21,24 @@ export const fetchPokemon = async (nome: string): Promise<Pokemon> => {
   return dados;
 };
 
-// Lista inicial de pokémons para exibir
-const POKEMONS_INICIAIS = [
-  "pikachu", "bulbasaur", "charmander", "squirtle",
-  "jigglypuff", "meowth", "psyduck", "gengar",
-  "eevee", "snorlax", "mewtwo", "gyarados",
-];
+export const POKEMONS_POR_PAGINA = 12;
 
-export const fetchPokemonsIniciais = async (): Promise<Pokemon[]> => {
-  const resultados = await Promise.allSettled(
-    POKEMONS_INICIAIS.map((nome) => fetchPokemon(nome))
+export const getPokemons = async (offset: number = 0): Promise<Pokemon[]> => {
+  const listaResp = await fetch(
+    `https://pokeapi.co/api/v2/pokemon?offset=${offset}&limit=${POKEMONS_POR_PAGINA}`
   );
+  if (!listaResp.ok) {
+    throw new Error("Falha ao carregar lista de Pokémons");
+  }
+  const lista = await listaResp.json() as {
+    results: Array<{ name: string; url: string }>;
+    count: number;
+  };
+
+  const resultados = await Promise.allSettled(
+    lista.results.map((p) => fetchPokemon(p.name))
+  );
+
   return resultados
     .filter((r): r is PromiseFulfilledResult<Pokemon> => r.status === "fulfilled")
     .map((r) => r.value);
