@@ -2,8 +2,10 @@ import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { PokeCard } from "./PokeCard";
 import type { Pokemon } from "./services/api";
 import { fetchPokemon, getPokemons, POKEMONS_POR_PAGINA } from "./services/api";
+import { useSafeAreaInsets } from "./utils/useSafeAreaInsets";
 
 export default function PokedexScreen() {
+  const insets = useSafeAreaInsets(); 
   const [busca, setBusca] = useState("");
   const [inputBusca, setInputBusca] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -187,7 +189,9 @@ export default function PokedexScreen() {
   };
 
   return (
-    <div className="pokedex-container">
+    <div
+      className="pokedex-container"
+      style={{ paddingTop: `max(40px, calc(40px + ${insets.top}px))` }}>
       <div className="pokedex-header">
         <div className="pokedex-logo">
           <span className="pokedex-logo__icon">🔴</span>

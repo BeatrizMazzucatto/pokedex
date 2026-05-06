@@ -1,11 +1,29 @@
 .pokedex-container {
   min-height: 100vh;
   background: linear-gradient(160deg, #ee1515 0%, #cc0000 30%, #1a1a2e 100%);
-  padding: 40px 20px;
+
+  /*
+   * Exercício 4 — Área Segura Dinâmica (equivalente web de useSafeAreaInsets):
+   * Em vez de um paddingTop fixo (ex: 60px), usamos env(safe-area-inset-*)
+   * para que o layout se adapte a dispositivos com notch, Dynamic Island, etc.
+   * O max() garante um mínimo confortável de 40px mesmo sem safe-area definida.
+   */
+  padding-top: max(40px, env(safe-area-inset-top, 40px));
+  padding-right: max(20px, env(safe-area-inset-right, 20px));
+  padding-bottom: max(20px, env(safe-area-inset-bottom, 20px));
+  padding-left: max(20px, env(safe-area-inset-left, 20px));
+
   display: flex;
   flex-direction: column;
   align-items: center;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Para que env() funcione em PWAs instaladas no iOS/Android */
+@supports (padding-top: env(safe-area-inset-top)) {
+  .pokedex-container {
+    padding-top: max(40px, env(safe-area-inset-top));
+  }
 }
 
 /* Header */
