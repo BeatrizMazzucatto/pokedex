@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { capitalize } from "./utils/format";
 
 type Pokemon = {
   name: string;
@@ -37,13 +38,14 @@ export function PokeCard({ pokemon }: PokeCardProps) {
         )}
         <div className="pokecard__titulo">
           <h3 className="pokecard__nome">
-            {pokemon.name}
+            {/* Exercício 4: capitalize garante "Pikachu" em vez de "pikachu" */}
+            {capitalize(pokemon.name)}
             {favorito && <span className="pokecard__estrela">⭐</span>}
           </h3>
           <div className="pokecard__tipos">
             {tipos.map((tipo) => (
               <span key={tipo} className={`pokecard__tipo pokecard__tipo--${tipo}`}>
-                {tipo}
+                {capitalize(tipo)}
               </span>
             ))}
           </div>
