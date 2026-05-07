@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { capitalize } from "./utils/format";
 
 type Pokemon = {
+  id: number;
   name: string;
   height: number;
   weight: number;
@@ -11,6 +13,14 @@ type Pokemon = {
   types: Array<{
     type: { name: string };
   }>;
+  stats: Array<{
+    base_stat: number;
+    stat: { name: string };
+  }>;
+  abilities: Array<{
+    ability: { name: string };
+    is_hidden: boolean;
+  }>;
 };
 
 type PokeCardProps = {
@@ -19,6 +29,7 @@ type PokeCardProps = {
 
 export function PokeCard({ pokemon }: PokeCardProps) {
   const [favorito, setFavorito] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     console.log(`Pokémon ${pokemon.name} carregado com sucesso!`);
@@ -26,8 +37,26 @@ export function PokeCard({ pokemon }: PokeCardProps) {
 
   const tipos = pokemon.types.map((t) => t.type.name);
 
+  const handleCardClick = () => {
+    // Equivalente ao TouchableOpacity + navigate() do React Navigation
+    navigate(`/pokemon/${pokemon.name}`);
+  };
+
+  const handleFavoritoClick = (e: React.MouseEvent) => {
+    // Impede que o clique no botão também navegue para a tela de detalhes
+    e.stopPropagation();
+    setFavorito(!favorito);
+  };
+
   return (
-    <div className={`pokecard ${favorito ? "pokecard--favorito" : ""}`}>
+    <div
+      className={`pokecard ${favorito ? "pokecard--favorito" : ""} pokecard--clickable`}
+      onClick={handleCardClick}
+      role="button"
+      tabIndex={0}
+      aria-label={`Ver detalhes de ${capitalize(pokemon.name)}`}
+      onKeyDown={(e) => e.key === "Enter" && handleCardClick()}
+    >
       <div className="pokecard__header">
         {pokemon.sprites.front_default && (
           <img
@@ -38,7 +67,6 @@ export function PokeCard({ pokemon }: PokeCardProps) {
         )}
         <div className="pokecard__titulo">
           <h3 className="pokecard__nome">
-            {/* Exercício 4: capitalize garante "Pikachu" em vez de "pikachu" */}
             {capitalize(pokemon.name)}
             {favorito && <span className="pokecard__estrela">⭐</span>}
           </h3>
@@ -65,7 +93,7 @@ export function PokeCard({ pokemon }: PokeCardProps) {
 
       <button
         className={`pokecard__botao-favorito ${favorito ? "pokecard__botao-favorito--ativo" : ""}`}
-        onClick={() => setFavorito(!favorito)}
+        onClick={handleFavoritoClick}
       >
         {favorito ? "💔 Remover dos favoritos" : "⭐ Favoritar"}
       </button>
